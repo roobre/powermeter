@@ -1,0 +1,2 @@
+[env:d1_mini]
+build_flags = -D 'WLAN_SSID="my wifi"' -D 'WLAN_PASSPHRASE="hunter2"'

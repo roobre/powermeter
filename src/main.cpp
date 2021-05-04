@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
-#include <EmonLib.h>
+#include <movingAverage.h>
+#include <clientHandler.h>
+#include <currentSampler.h>
 
 #ifndef WLAN_SSID
 #define WLAN_SSID ""
@@ -10,20 +12,48 @@
 #define WLAN_PASSPHRASE ""
 #endif
 
-bool has_something_to_say(WiFiClient& c);
-
-WiFiServer http(80);
-EnergyMonitor emon;
 
 const double voltage = 230.0;
 
-void reconnect() {
-    switch (WiFi.status()) {
-        case WL_CONNECTED:
-        case WL_IDLE_STATUS:
-            return;
-        default:
-            break;
+void wlan_reconnect(WiFiServer& server);
+
+void setup() {
+    Serial.begin(115200);
+    Serial.println("Booting up");
+    pinMode(A0, INPUT);
+}
+
+void loop() {
+    static WiFiServer http(80);
+    static MovingAverage currentAvg(64);
+    static CurrentSampler currentSampler(A0, 30);
+
+    wlan_reconnect(http);
+
+    if (currentSampler.ready()) {
+        auto sample = currentSampler.sample();
+        currentAvg.sample(sample.value);
+    }
+
+    if (http.hasClient()) {
+        WiFiClient client = http.available();
+        ClientHandler handler(client);
+
+        struct power_data data = {
+                .current = currentAvg.average(),
+                .voltage = voltage,
+                .power = 0,
+                .voltage_source = "config",
+        };
+        data.power = data.current * data.voltage;
+
+        handler.handle(&data);
+    }
+}
+
+void wlan_reconnect(WiFiServer& server) {
+    if (WiFi.status() == WL_CONNECTED) {
+        return;
     }
 
     Serial.printf("Caught in status %d, reconnecting\n", WiFi.status());
@@ -40,50 +70,5 @@ void reconnect() {
     Serial.print("Connected, IP address: ");
     Serial.println(WiFi.localIP());
 
-    http.begin();
-}
-
-void setup() {
-    Serial.begin(115200);
-    Serial.println("Booting up");
-    pinMode(A0, INPUT);
-    emon.current(A0, 30);
-}
-
-void loop() {
-    static unsigned long last_read = 0;
-    static unsigned long sampling_time = 0;
-    static double irms = 0;
-
-    reconnect();
-
-    if (millis() - last_read > 750) {
-        last_read = millis();
-        sampling_time = millis();
-        irms = emon.calcIrms(1480);
-        sampling_time = millis() - sampling_time;
-    }
-
-
-    if (http.hasClient()) {
-        WiFiClient client = http.available();
-        while (has_something_to_say(client)) {
-            client.read();
-        }
-        client.println("HTTP/1.0 200 Oki-Doki");
-        client.println("Connection: close");
-        client.println("Server: RawrHTTP on Wemos D1");
-        client.println("Content-Type: application/json");
-        client.println("");
-        client.printf(R"({"current": %.4lf, "power": %.4lf, "voltage": %.4lf, "voltage_source": "config", "sampling_period": %ld})", irms, irms * voltage, voltage, sampling_time);
-        client.flush();
-        client.stop();
-    }
-}
-
-bool has_something_to_say(WiFiClient& c) {
-    if (c.available())
-        return true;
-    delay(100);
-    return c.available();
+    server.begin();
 }

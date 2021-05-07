@@ -15,12 +15,21 @@
 
 const double voltage = 230.0;
 
+const int onboard_led_pin = D4;
+const int busy_led_pin = D2;
+
+void busy(bool busy);
+
 void wlan_reconnect(WiFiServer& server);
 
 void setup() {
     Serial.begin(115200);
     Serial.println("Booting up");
-    pinMode(A0, INPUT);
+    pinMode(A0, INPUT); // ADC
+    pinMode(onboard_led_pin, OUTPUT);
+    digitalWrite(onboard_led_pin, HIGH); // Active on low
+    pinMode(busy_led_pin, OUTPUT);
+    busy(true);
 }
 
 void loop() {
@@ -36,6 +45,8 @@ void loop() {
     }
 
     if (http.hasClient()) {
+        busy(true);
+
         WiFiClient client = http.available();
         ClientHandler handler(client);
 
@@ -48,6 +59,8 @@ void loop() {
         data.power = data.current * data.voltage;
 
         handler.handle(&data);
+
+        busy(false);
     }
 }
 
@@ -55,6 +68,8 @@ void wlan_reconnect(WiFiServer& server) {
     if (WiFi.status() == WL_CONNECTED) {
         return;
     }
+
+    busy(true);
 
     Serial.printf("Caught in status %d, reconnecting\n", WiFi.status());
 
@@ -71,4 +86,10 @@ void wlan_reconnect(WiFiServer& server) {
     Serial.println(WiFi.localIP());
 
     server.begin();
+
+    busy(false);
+}
+
+void busy(bool busy) {
+    digitalWrite(busy_led_pin, busy);
 }

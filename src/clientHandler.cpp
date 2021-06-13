@@ -1,33 +1,46 @@
 #include <clientHandler.h>
+#include <sender.h>
 #include <Arduino.h>
+#include <map>
 
 ClientHandler::ClientHandler(WiFiClient &client) : client(client) {}
 
 void ClientHandler::handle(struct power_data *data) {
-    consumeRequest();
+    auto headers = consumeHeaders();
 
-    client.println("HTTP/1.0 200 Oki-Doki");
-    client.println("Connection: close");
-    client.println("Server: RawrHTTP on Wemos D1");
-    client.println("Content-Type: application/json");
-    client.println("");
-    client.printf(
-            R"({"current": %.4lf, "power": %.4lf, "voltage": %.1lf, "voltage_source": "%s"})",
-            data->current, data->power, data->voltage, data->voltage_source
-    );
+    Sender* sender;
+    if (headers["Accept"].indexOf("json") != -1) {
+        sender = new JsonSender();
+    } else {
+        sender = new PrometheusSender();
+    }
+
+    sender->send(data, this->client);
+
     client.flush();
     client.stop();
 }
 
-void ClientHandler::consumeRequest() {
-    while (hasRequest()) {
-        client.read();
-    }
-}
+std::map<String, String> ClientHandler::consumeHeaders() {
+    String contentType;
+    std::map<String, String> headers;
 
-bool ClientHandler::hasRequest() {
-    if (client.available())
-        return true;
-    delay(100);
-    return client.available();
+    const auto headerDelimiter = ": ";
+    for (;;) {
+        auto hdr = client.readStringUntil('\n');
+        hdr.trim();
+
+        if (hdr.length() == 0) {
+            break;
+        }
+
+        auto dPos = hdr.indexOf(headerDelimiter);
+        if (dPos == -1) {
+            continue;
+        }
+
+        headers[hdr.substring(0, dPos)] = hdr.substring(dPos + strlen(headerDelimiter));
+    }
+
+    return headers;
 }

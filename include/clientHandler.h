@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ESP8266WiFi.h>
+#include <map>
 
 struct power_data {
     double current;
@@ -16,7 +17,6 @@ public:
     void handle(struct power_data* data);
 
 private:
-    void consumeRequest();
-    bool hasRequest();
+    std::map<String, String> consumeHeaders();
     WiFiClient& client;
 };

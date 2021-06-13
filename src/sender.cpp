@@ -10,15 +10,15 @@ void PrometheusSender::send(struct power_data *data, WiFiClient &client) {
 
     client.println("# HELP pm_current Instant current draw, averaged.");
     client.println("# TYPE pm_current gauge");
-    client.printf("pm_current %.4lf", data->current);
+    client.printf("pm_current %.4lf\n", data->current);
 
     client.println("# HELP pm_voltage Instant voltage.");
     client.println("# TYPE pm_voltage gauge");
-    client.printf("pm_voltage{source=\"%s\"} %.4lf", data->voltage_source, data->voltage);
+    client.printf("pm_voltage{source=\"%s\"} %.4lf\n", data->voltage_source, data->voltage);
 
     client.println("# HELP pm_power Instant power draw, averaged.");
     client.println("# TYPE pm_power gauge");
-    client.printf("pm_power %.4lf", data->power);
+    client.printf("pm_power %.4lf\n", data->power);
 }
 
 void JsonSender::send(struct power_data *data, WiFiClient &client) {

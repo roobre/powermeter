@@ -6,6 +6,7 @@
 class Sender {
 public:
     virtual void send(struct power_data*, WiFiClient&) = 0;
+    virtual ~Sender();
 };
 
 class PrometheusSender : public Sender {

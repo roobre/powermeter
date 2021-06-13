@@ -17,6 +17,8 @@ void ClientHandler::handle(struct power_data *data) {
 
     sender->send(data, this->client);
 
+    delete sender;
+
     client.flush();
     client.stop();
 }

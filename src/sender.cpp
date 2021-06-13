@@ -1,6 +1,8 @@
 #include <sender.h>
 #include <ESP8266WiFi.h>
 
+Sender::~Sender() {}
+
 void PrometheusSender::send(struct power_data *data, WiFiClient &client) {
     client.println("HTTP/1.0 200 Oki-Doki");
     client.println("Connection: close");

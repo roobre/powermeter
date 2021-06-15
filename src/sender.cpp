@@ -10,16 +10,16 @@ void PrometheusSender::send(struct power_data *data, WiFiClient &client) {
     client.println("Content-Type: text/plain; version=0.0.4");
     client.println("");
 
-    client.println("# HELP pm_current Instant current draw, averaged.");
-    client.println("# TYPE pm_current gauge");
+    client.print("# HELP pm_current Instant current draw, averaged.\n");
+    client.print("# TYPE pm_current gauge\n");
     client.printf("pm_current %.4lf\n", data->current);
 
-    client.println("# HELP pm_voltage Instant voltage.");
-    client.println("# TYPE pm_voltage gauge");
+    client.print("# HELP pm_voltage Instant voltage.\n");
+    client.print("# TYPE pm_voltage gauge\n");
     client.printf("pm_voltage{source=\"%s\"} %.4lf\n", data->voltage_source, data->voltage);
 
-    client.println("# HELP pm_power Instant power draw, averaged.");
-    client.println("# TYPE pm_power gauge");
+    client.print("# HELP pm_power Instant power draw, averaged.\n");
+    client.print("# TYPE pm_power gauge\n");
     client.printf("pm_power %.4lf\n", data->power);
 }
 

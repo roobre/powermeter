@@ -73,6 +73,7 @@ void wlan_reconnect(WiFiServer& server) {
 
     Serial.printf("Caught in status %d, reconnecting\n", WiFi.status());
 
+    WiFi.mode(WIFI_STA);
     WiFi.begin(WLAN_SSID, WLAN_PASSPHRASE);
 
     Serial.println("Connecting");

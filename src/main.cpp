@@ -32,11 +32,11 @@ void setup() {
     busy(true);
 }
 
-void loop() {
-    static WiFiServer http(80);
-    static MovingAverage currentAvg(64);
-    static CurrentSampler currentSampler(A0, 30);
+WiFiServer http(80);
+MovingAverage currentAvg(64);
+CurrentSampler currentSampler(A0, 15);
 
+void loop() {
     wlan_reconnect(http);
 
     if (currentSampler.ready()) {

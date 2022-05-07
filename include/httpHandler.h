@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ESP8266WiFi.h>
+#include <Client.h>
 #include <map>
 
 struct power_data {
@@ -13,10 +13,10 @@ struct power_data {
 // Answers requests from clients
 class ClientHandler {
 public:
-    explicit ClientHandler(WiFiClient& client);
+    explicit ClientHandler(Client& client);
     void handle(struct power_data* data);
 
 private:
     std::map<String, String> consumeHeaders();
-    WiFiClient& client;
+    Client& client;
 };

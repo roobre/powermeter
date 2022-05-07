@@ -1,21 +1,21 @@
-#include <clientHandler.h>
+#include <httpHandler.h>
 #include <sender.h>
 #include <Arduino.h>
 #include <map>
 
-ClientHandler::ClientHandler(WiFiClient &client) : client(client) {}
+ClientHandler::ClientHandler(Client &client) : client(client) {}
 
 void ClientHandler::handle(struct power_data *data) {
     auto headers = consumeHeaders();
 
     Sender* sender;
     if (headers["Accept"].indexOf("json") != -1) {
-        sender = new JsonSender();
+        sender = new JsonSender(client);
     } else {
-        sender = new PrometheusSender();
+        sender = new PrometheusSender(client);
     }
 
-    sender->send(data, this->client);
+    sender->send(data);
 
     delete sender;
 

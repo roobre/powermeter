@@ -1,9 +1,11 @@
 #include <sender.h>
-#include <ESP8266WiFi.h>
+#include <Client.h>
 
 Sender::~Sender() {}
 
-void PrometheusSender::send(struct power_data *data, WiFiClient &client) {
+PrometheusSender::PrometheusSender(Client& client) : client(client) {}
+
+void PrometheusSender::send(struct power_data *data) {
     client.println("HTTP/1.0 200 Oki-Doki");
     client.println("Connection: close");
     client.println("Server: RawrHTTP on Wemos D1");
@@ -14,7 +16,7 @@ void PrometheusSender::send(struct power_data *data, WiFiClient &client) {
     client.print("# TYPE pm_current gauge\n");
     client.printf("pm_current %.4lf\n", data->current);
 
-    client.print("# HELP pm_voltage Instant voltage.\n");
+    client.print("# HELP pm_voltage Instant config_voltage.\n");
     client.print("# TYPE pm_voltage gauge\n");
     client.printf("pm_voltage{source=\"%s\"} %.4lf\n", data->voltage_source, data->voltage);
 
@@ -23,7 +25,9 @@ void PrometheusSender::send(struct power_data *data, WiFiClient &client) {
     client.printf("pm_power %.4lf\n", data->power);
 }
 
-void JsonSender::send(struct power_data *data, WiFiClient &client) {
+JsonSender::JsonSender(Client& _client) : client(_client) {}
+
+void JsonSender::send(struct power_data *data) {
     client.println("HTTP/1.0 200 Oki-Doki");
     client.println("Connection: close");
     client.println("Server: RawrHTTP on Wemos D1");
@@ -31,7 +35,7 @@ void JsonSender::send(struct power_data *data, WiFiClient &client) {
     client.println("");
 
     client.printf(
-            R"({"current": %.4lf, "power": %.4lf, "voltage": %.1lf, "voltage_source": "%s"})",
+            R"({"current": %.4lf, "power": %.4lf, "config_voltage": %.1lf, "voltage_source": "%s"})",
             data->current, data->power, data->voltage, data->voltage_source
     );
 }

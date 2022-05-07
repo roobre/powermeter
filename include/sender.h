@@ -1,18 +1,28 @@
 #pragma once
 
-#include <clientHandler.h>
-#include <ESP8266WiFi.h>
+#include <httpHandler.h>
+#include <Client.h>
 
 class Sender {
 public:
-    virtual void send(struct power_data*, WiFiClient&) = 0;
+    virtual void send(struct power_data*) = 0;
     virtual ~Sender();
 };
 
 class PrometheusSender : public Sender {
-    void send(struct power_data*, WiFiClient&) override;
+public:
+    explicit PrometheusSender(Client& _client);
+    void send(struct power_data*) override;
+
+private:
+    Client& client;
 };
 
 class JsonSender : public Sender{
-    void send(struct power_data*, WiFiClient&) override;
+public:
+    explicit JsonSender(Client& _client);
+    void send(struct power_data*) override;
+
+private:
+    Client& client;
 };

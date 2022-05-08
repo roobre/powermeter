@@ -56,7 +56,7 @@ void HASSSender::send(struct power_data *pdata) {
     bool sent = true;
     sent &= current.setValue(pdata->current);
     sent &= voltage.setValue(pdata->voltage);
-    sent &= power.setValue(pdata->power);
+    sent &= power.setValue(pdata->power, 0);
 
 #ifdef PM_DEBUG_SERIAL
     if (!sent) {

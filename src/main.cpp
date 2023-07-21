@@ -34,7 +34,7 @@ void busy(bool busy);
 void wlan_loop(WiFiServer& server);
 
 WiFiServer http(80);
-MovingAverage currentAvg(64);
+MovingAverage currentAvg(10); // Store 10 samples. With one sample every 3s, this is 30s of data.
 CurrentSampler currentSampler(A0, 15);
 
 // Other senders are stateless and instantiated by Handler, but HASSSender is
@@ -56,6 +56,7 @@ void setup() {
 void loop() {
     wlan_loop(http);
 
+    // Store a new sample every 3 seconds.
     if (currentSampler.ready()) {
         auto sample = currentSampler.sample();
         currentAvg.sample(sample.value);
@@ -69,6 +70,7 @@ void loop() {
     };
     data.power = data.current * data.voltage;
 
+    // Send to hass every 30 seconds.
     hass.send(&data);
 
     if (http.hasClient()) {

@@ -70,7 +70,7 @@ void HASSSender::send(struct power_data *pdata) {
 }
 
 bool HASSSender::shouldSend() const {
-    return lastSent == 0 || millis() > lastSent + interval_sec * 1000;
+    return lastSent == 0 || millis() > (lastSent + interval_sec * 1000);
 }
 
 void HASSSender::interval(long _interval_sec) {

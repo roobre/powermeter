@@ -18,7 +18,7 @@ public:
     unsigned long sampleRate;
     unsigned long microSamples;
 
-    static const unsigned long DEFAULT_SAMPLERATE = 750;
+    static const unsigned long DEFAULT_SAMPLERATE = 3000;
     static const unsigned long DEFAULT_MICROSAMPLES = 1480;
 
 private:
